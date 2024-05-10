@@ -1,0 +1,10 @@
+import numpy as np
+import pandas as pd
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, Conv1D, GlobalMaxPooling1D, Dense
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+
+# Load audio and video dataset from CSV
+audio_video_data = pd.read_csv('/content/drive/MyDrive/Colab Notebooks/coords.csv/coords.csv')
