@@ -15,3 +15,17 @@ max_sequence_length = max(len(seq) for seq in X)
 X = pad_sequences(X, maxlen=max_sequence_length, padding='post')
 # Convert labels to numpy array
 y = np.array(labels)
+
+# Model architecture
+model = Sequential([
+    Embedding(len(vocab) + 1, 100, input_length=max_sequence_length),
+    Conv1D(128, 5, activation='relu'),
+    GlobalMaxPooling1D(),
+    Dense(1, activation='sigmoid')
+])
+
+# Compile model
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train model
+model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
