@@ -1,31 +1,52 @@
-import numpy as np
-import pandas as pd
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, Conv1D, GlobalMaxPooling1D, Dense
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-# Loading audio and video dataset from CSV
-audio_video_data = pd.read_csv('/coords.csv')
+!git clone https://github.com/nshepperd/gpt-2.git
+import openai
 
-# Convert text to sequences of indices
-X = [[word_to_index[word] for word in text.split()] for text in texts]
-# Pad sequences to a fixed length
-max_sequence_length = max(len(seq) for seq in X)
-X = pad_sequences(X, maxlen=max_sequence_length, padding='post')
-# Convert labels to numpy array
-y = np.array(labels)
+openai.api_key = 'sk-proj-K1SiASJYdte7dNLJa0LKT3BlbkFJw7dRXDuRJGuq0eDIOkjc'
 
-# Model architecture
-model = Sequential([
-    Embedding(len(vocab) + 1, 100, input_length=max_sequence_length),
-    Conv1D(128, 5, activation='relu'),
-    GlobalMaxPooling1D(),
-    Dense(1, activation='sigmoid')
-])
+def detect_intent(prompt):
+    try:
+        # Build the conversation prompt
+        conversation_prompt = "User: " + prompt + "\nChatGPT:"
 
-# Compile model
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        # Complete the prompt with GPT-2
+        response = openai.Completion.create(
+            engine="gpt-2",  # Using GPT-2 model
+            prompt=conversation_prompt,
+            temperature=0.7,
+            max_tokens=150,
+            stop=["\n"]
+        )
 
-# Train model
-model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+        # Get the bot's response
+        bot_response = response.choices[0].text.strip()
+
+        # Check for specific intents in the bot's response
+        if "suicide" in bot_response.lower() or "kill myself" in bot_response.lower():
+            return True, bot_response
+        elif "resources" in bot_response.lower():
+            return False, "ChatGPT: It sounds like you might be going through a tough time. Here are some mental health resources that might help:\n- [Resource 1]\n- [Resource 2]\n- [Resource 3]"
+        else:
+            return False, bot_response
+    except Exception as e:
+        print("An error occurred:", e)
+        return False, "ChatGPT: I'm sorry, I couldn't process your request at the moment."
+
+# Main function
+def main():
+    print("ChatGPT: Hello! How can I assist you today?")
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == 'quit':
+            print("ChatGPT: Goodbye!")
+            break
+        
+        # Detect intent and get bot's response
+        intent_detected, bot_response = detect_intent(user_input)
+        
+        # Provide appropriate response based on intent
+        if intent_detected:
+            print("ChatGPT: It's important to talk to someone if you're feeling this way. Here's what I think about what you said:", bot_response)
+        else:
+            print(bot_response)
+
+main()
